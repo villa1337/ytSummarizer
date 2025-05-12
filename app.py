@@ -17,7 +17,8 @@ API_KEY = os.getenv("OPENROUTER_API_KEY")
 # Extracts video ID from a YouTube URL
 def extract_video_id(url):
     logging.debug(f"Extracting video ID from URL: {url}")
-    match = re.search(r"(?:v=|youtu\\.be/)([a-zA-Z0-9_-]{11})", url)
+    # Updated regex to handle more YouTube URL formats
+    match = re.search(r"(?:v=|\/|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})", url)
     video_id = match.group(1) if match else None
     logging.debug(f"Extracted video ID: {video_id}")
     return video_id
@@ -103,4 +104,6 @@ def index():
 
 if __name__ == "__main__":
     logging.info("Starting Flask app...")
-    app.run(host="0.0.0.0", port=5000)
+    # app.run(host="0.0.0.0", port=5000)
+    # To run locally, use:
+    app.run(debug=True)
