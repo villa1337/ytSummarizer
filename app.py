@@ -85,12 +85,6 @@ def index():
         language = request.form.get("lang", "en")
         user_query = request.form.get("query", "").strip()
 
-        # Force User-Agent spoofing to always act like a desktop browser
-        request.headers.environ['HTTP_USER_AGENT'] = (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-
         logging.info(f"Received POST request with URL: {url}, language: {language}, query: {user_query}")
         video_id = extract_video_id(url)
         if video_id:
