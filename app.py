@@ -25,10 +25,6 @@ def extract_video_id(url):
 def get_transcript(video_id, language):
     logging.debug(f"Fetching transcript for video ID: {video_id} with language: {language}")
     try:
-        # Spoof User-Agent to act like a desktop browser
-        YouTubeTranscriptApi._YouTubeTranscriptApi__session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        })
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
         try:
             transcript = transcript_list.find_transcript([language])
@@ -88,13 +84,8 @@ def index():
         language = request.form.get("lang", "en")
         user_query = request.form.get("query", "").strip()
 
+        request.headers.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-        # Force User-Agent spoofing to always act like a desktop browser
-        request.headers.environ['HTTP_USER_AGENT'] = (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-        
         logging.info(f"Received POST request with URL: {url}, language: {language}, query: {user_query}")
         video_id = extract_video_id(url)
         if video_id:
