@@ -41,6 +41,8 @@ def get_transcript(video_id, language):
     except (TranscriptsDisabled, NoTranscriptAvailable) as e:
         logging.error(f"Error fetching transcript: {str(e)}")
         return ""
+    except YouTubeRequestFailed:
+        return "Transcript could not be retrieved – YouTube is rate-limiting or blocking access."
 
 # Queries OpenRouter with either a summary or user question about the transcript
 def query_openrouter(transcript, user_query):
