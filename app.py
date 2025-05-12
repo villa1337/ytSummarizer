@@ -112,7 +112,4 @@ def index():
 
 if __name__ == "__main__":
     logging.info("Starting Flask app...")
-    if os.getenv("RAILWAY_ENV"):  # Check if running on Railway
-        app.run(host="0.0.0.0", port=8080)
-    else:  # Running locally
-        app.run(debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
