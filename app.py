@@ -4,12 +4,10 @@ import requests
 import logging
 from flask import Flask, request, render_template
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, NoTranscriptAvailable
-from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
-load_dotenv()
 app = Flask(__name__)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -27,6 +25,10 @@ def extract_video_id(url):
 def get_transcript(video_id, language):
     logging.debug(f"Fetching transcript for video ID: {video_id} with language: {language}")
     try:
+        # Spoof User-Agent to act like a desktop browser
+        YouTubeTranscriptApi._YouTubeTranscriptApi__session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        })
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
         try:
             transcript = transcript_list.find_transcript([language])
@@ -41,8 +43,9 @@ def get_transcript(video_id, language):
     except (TranscriptsDisabled, NoTranscriptAvailable) as e:
         logging.error(f"Error fetching transcript: {str(e)}")
         return ""
-    except YouTubeRequestFailed:
-        return "Transcript could not be retrieved – YouTube is rate-limiting or blocking access."
+    except Exception as e:
+        logging.error(f"Unexpected error fetching transcript: {str(e)}")
+        return "Transcript could not be retrieved – an unexpected error occurred."
 
 # Queries OpenRouter with either a summary or user question about the transcript
 def query_openrouter(transcript, user_query):
