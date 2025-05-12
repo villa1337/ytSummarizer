@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <title>YouTube Transcript Q&A</title>
+</head>
+<body>
+  <h1>YouTube Transcript Q&A</h1>
+  <form method="POST">
+    <label>YouTube Video URL:</label>
+    <input name="url" required><br><br>
+    
+    <label>Ask about the video:</label>
+    <input name="query" placeholder="e.g., What did they say about AI?" style="width: 400px;"><br><br>
+
+    <label>Transcript Language:</label>
+    <select name="lang">
+      <option value="en">English</option>
+      <option value="es">Spanish</option>
+    </select><br><br>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  {% if transcript %}
+    <h2>Transcript Preview:</h2>
+    <div style="white-space: pre-wrap;">{{ transcript[:1000] }}...</div>
+  {% endif %}
+
+  {% if result %}
+    <h2>Response:</h2>
+    <div style="white-space: pre-wrap;">{{ result }}</div>
+  {% endif %}
+</body>
+</html>
