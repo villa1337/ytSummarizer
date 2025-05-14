@@ -56,7 +56,7 @@ def query_openrouter(transcript, user_query):
         "Content-Type": "application/json"
     }
     body = {
-        "model": "openai/gpt-4o",
+        "model": "huggingfaceh4/zephyr",
         "messages": [
         {"role": "user", "content": prompt}
         ],
