@@ -56,7 +56,7 @@ def query_openrouter(transcript, user_query):
         "Content-Type": "application/json"
     }
     body = {
-        "model": "huggingfaceh4/zephyr",
+        "model": "mistralai/mistral-7b-instruct:free",
         "messages": [
         {"role": "user", "content": prompt}
         ],
