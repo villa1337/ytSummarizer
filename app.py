@@ -60,13 +60,14 @@ def query_openrouter(transcript, user_query):
         "messages": [
         {"role": "user", "content": prompt}
         ],
-        "max_tokens": 500
+        "max_tokens": 420
     }
 
     logging.debug(f"Sending request to OpenRouter with body: {body}")
     try:
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", json=body, headers=headers)
         response.raise_for_status()
+        logging.debug(f"Full response from OpenRouter: {response.json()}")
         result = response.json()["choices"][0]["message"]["content"]
         logging.debug(f"Received response from OpenRouter: {result[:100]}...")  # Log first 100 characters
         return result
