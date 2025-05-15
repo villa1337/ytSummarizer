@@ -47,7 +47,7 @@ def get_transcript(video_id, language):
 def query_openrouter(transcript, user_query):
     logging.debug(f"Querying OpenRouter with user query: '{user_query}'")
     if not user_query.strip():
-        prompt = f"Summarize the following YouTube video transcript:\n\n{transcript[:10000]}"
+        prompt = f"Summarize the following YouTube video transcript (leave out any advertisements that are made):\n\n{transcript[:10000]}"
     else:
         prompt = f"Given the following transcript, answer this question: '{user_query}'\n\nTranscript:\n{transcript[:10000]}"
 
@@ -60,7 +60,7 @@ def query_openrouter(transcript, user_query):
         "messages": [
         {"role": "user", "content": prompt}
         ],
-        "max_tokens": 420
+        "max_tokens": 666
     }
 
     logging.debug(f"Sending request to OpenRouter with body: {body}")
