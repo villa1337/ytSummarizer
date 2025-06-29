@@ -1,0 +1,29 @@
+# Place your exported YouTube cookies here using the cookies.txt format.
+# You can export cookies using the 'Get cookies.txt' browser extension or similar tools.
+# This file is required for yt-dlp to access age-restricted or protected videos.
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file!  Do not edit.
+
+.youtube.com	TRUE	/	TRUE	1759786692	LOGIN_INFO	AFmmF2swRQIhAKQqK7GkLeBHkeuPrRJ0gvdjudafb2NwfGimEs4q7qDPAiB7QSV05aUAzHlf3cNy5lsewNetmQyFxw-R5s6rn7fuOA:QUQ3MjNmeTRza1kyUXhuamVIbFpsM1dleDVZQTlWQmY0U3Y1OXk5aXRFVjh2QXNOV1dQVmdRUWFHdTBFVzg3NWxkZHJMQ0pWLUJUcVRYUThHS2xsMFA5S0tVUHg3TlVYbm5zd1NuT0RBeGljbUM2c0V0SHRVR2ZwdU9wOGFySnJPblFJQUtXV1p5QkNMZ2FHQmlLS21UM0lTN2QtUVRHcTNaWkRkR3ROeURqWlVoYzN4ekczdmVzbjhsdWZDZURVZGMwWGkzaUt3YWJ5YWxud2hVVXdOZFpqam1lME9FVmdLUQ==
+.youtube.com	TRUE	/	FALSE	1784342842	HSID	AWWCp0nnCOTvQCzEW
+.youtube.com	TRUE	/	TRUE	1784342842	SSID	Aylr_dTLxYosJbnlK
+.youtube.com	TRUE	/	FALSE	1784342842	APISID	tzp0n_EA-P7iskQc/A0MxP_7H_zgY0QgdN
+.youtube.com	TRUE	/	TRUE	1784342842	SAPISID	buCjYDEUFDa8wfiV/AvpEPHZEJMGKfdH3D
+.youtube.com	TRUE	/	TRUE	1784342842	__Secure-1PAPISID	buCjYDEUFDa8wfiV/AvpEPHZEJMGKfdH3D
+.youtube.com	TRUE	/	TRUE	1784342842	__Secure-3PAPISID	buCjYDEUFDa8wfiV/AvpEPHZEJMGKfdH3D
+.youtube.com	TRUE	/	FALSE	1784342842	SID	g.a000yAhspjYT1PB_Rxrt3fegi0gSu-3gG1IJl4rsic6VCsyGzJXOh_FJXP108xqcb2_dkVb-1gACgYKAZASARYSFQHGX2MiOyEVyy2IEekqQsD1ei9bNxoVAUF8yKrlhg9dU9QH_sF6kA5rh8yb0076
+.youtube.com	TRUE	/	TRUE	1784342842	__Secure-1PSID	g.a000yAhspjYT1PB_Rxrt3fegi0gSu-3gG1IJl4rsic6VCsyGzJXO7LPAkgpRxg9OexJkHyVW0QACgYKAb8SARYSFQHGX2MiMPYIY0mt58KeE6-Hni903xoVAUF8yKqpiXiAGwKuytQoZvZfEvv80076
+.youtube.com	TRUE	/	TRUE	1784342842	__Secure-3PSID	g.a000yAhspjYT1PB_Rxrt3fegi0gSu-3gG1IJl4rsic6VCsyGzJXORBDFWGUIBzDZ9zZ0QvuzLAACgYKAWsSARYSFQHGX2MiTjeBM1cwMT5vAcsatSou5xoVAUF8yKqdRtqMJFbXwXzyYmbWv4MM0076
+.youtube.com	TRUE	/	TRUE	1751820304	PREF	f6=40000080&tz=America.Mexico_City&f5=30000&f7=100
+.youtube.com	TRUE	/	FALSE	0	wide	0
+www.youtube.com	FALSE	/	TRUE	0	authorMessages	
+.youtube.com	TRUE	/	TRUE	1782752719	__Secure-1PSIDTS	sidts-CjIB5H03PzW850jbl06rxK_Y_b9Zqz-uOAx735xFf2OGFoc18GnRaIBrErUpeCo_fhPDHRAA
+.youtube.com	TRUE	/	TRUE	1782752719	__Secure-3PSIDTS	sidts-CjIB5H03PzW850jbl06rxK_Y_b9Zqz-uOAx735xFf2OGFoc18GnRaIBrErUpeCo_fhPDHRAA
+.youtube.com	TRUE	/	FALSE	1782752719	SIDCC	AKEyXzXn8t34udwghJUtuodxcYM_8SEPUl6eHx_07DqfhZwQvunhpw6SlUKrA0eqV11hRbls1Lw
+.youtube.com	TRUE	/	TRUE	1782752719	__Secure-1PSIDCC	AKEyXzX0cKXlJtTHHf1GADvuhUjgPpNCN05Y9m06K3o_L1eVzCYXsluN6XX3IElzk7EzSZZxXCc
+.youtube.com	TRUE	/	TRUE	1782752719	__Secure-3PSIDCC	AKEyXzX3hHvPNlIKUwQCNZFMlSFy48fCCC29dG7JIEAqtJ1O6wiQ6T0AInwp_X7dYdf81KAsIbVx
+.youtube.com	TRUE	/	TRUE	1766767501	VISITOR_PRIVACY_METADATA	CgJVUxIEGgAgGA%3D%3D
+.youtube.com	TRUE	/	TRUE	1766767501	VISITOR_INFO1_LIVE	C_jB01lpOls
+.youtube.com	TRUE	/	TRUE	0	YSC	IznTQ5SUU2w
+.youtube.com	TRUE	/	TRUE	1766718660	__Secure-ROLLOUT_TOKEN	CNm9oe-EyYuggAEQkMiSjeraiQMY3IHwldSVjgM%3D

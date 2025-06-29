@@ -34,6 +34,7 @@ def get_transcript(video_url, language='en'):
         'subtitleslangs': [language],
         'quiet': True,
         'no_warnings': True,
+        'cookiefile': os.path.join(os.path.dirname(__file__), 'cookies.txt'),  # Use relative path
     }
     with YoutubeDL(ydl_opts) as ydl:
         try:
