@@ -1,6 +1,3 @@
-# Place your exported YouTube cookies here using the cookies.txt format.
-# You can export cookies using the 'Get cookies.txt' browser extension or similar tools.
-# This file is required for yt-dlp to access age-restricted or protected videos.
 # Netscape HTTP Cookie File
 # http://curl.haxx.se/rfc/cookie_spec.html
 # This is a generated file!  Do not edit.
