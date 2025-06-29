@@ -4,7 +4,9 @@ import requests
 import logging
 import subprocess
 import json
+import time
 from flask import Flask, request, render_template
+from yt_dlp import YoutubeDL
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -12,6 +14,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %
 app = Flask(__name__)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
+groq_api_key = os.getenv("GROQ_API_KEY", "")
 
 # Extracts video ID from a YouTube URL
 def extract_video_id(url):
@@ -24,101 +27,94 @@ def extract_video_id(url):
 
 # Attempts to fetch transcript in the selected language, defaults to 'es' if 'en' not found
 def get_transcript(video_url, language='en'):
-    result = subprocess.run(
-        [
-            'yt-dlp',
-            '--skip-download',
-            '--sub-lang', language,
-            '--sub-format', 'json3',
-            '--print-json',
-            video_url
-        ],
-        capture_output=True,
-        text=True
-    )
-
-    if result.returncode != 0:
-        print("Error running yt-dlp:\n", result.stderr)
-        return None
-
-    try:
-        video_info = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        print("Failed to parse yt-dlp output.")
-        return None
-
-    # Try both 'subtitles' and 'automatic_captions'
-    subtitles = video_info.get('subtitles') or video_info.get('automatic_captions', {})
-    available_langs = list(subtitles.keys())
-
-    if language not in subtitles:
-        print(f"WARNING: No subtitles found for language '{language}'")
-        if available_langs:
-            fallback_lang = available_langs[0]
-            print(f"⚠️  Falling back to: {fallback_lang}")
-            language = fallback_lang
-        else:
-            print("❌ No subtitles available at all.")
+    ydl_opts = {
+        'skip_download': True,
+        'writesubtitles': True,
+        'subtitlesformat': 'json3',
+        'subtitleslangs': [language],
+        'quiet': True,
+        'no_warnings': True,
+    }
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(video_url, download=False)
+        except Exception as e:
+            print(f"yt-dlp extraction error: {e}")
             return None
+        subtitles = info.get('subtitles') or info.get('automatic_captions', {})
+        available_langs = list(subtitles.keys())
+        if language not in subtitles:
+            print(f"WARNING: No subtitles found for language '{language}'")
+            if available_langs:
+                fallback_lang = available_langs[0]
+                print(f"⚠️  Falling back to: {fallback_lang}")
+                language = fallback_lang
+            else:
+                print("❌ No subtitles available at all.")
+                return None
+        formats = subtitles[language]
+        json3_url = next((f['url'] for f in formats if f['ext'] == 'json3'), None)
+        if not json3_url:
+            print("Could not find JSON3 subtitle format")
+            return None
+        response = requests.get(json3_url)
+        if response.status_code != 200:
+            print("Failed to fetch transcript JSON3")
+            return None
+        data = response.json()
+        transcript = []
+        for event in data.get('events', []):
+            if 'segs' in event:
+                start = event.get('tStartMs', 0) / 1000.0
+                duration = event.get('dDurationMs', 0) / 1000.0
+                text = ''.join(seg.get('utf8', '') for seg in event['segs']).strip()
+                if text:
+                    transcript.append({
+                        'start': start,
+                        'duration': duration,
+                        'text': text
+                    })
+        return transcript
 
-    formats = subtitles[language]
-    json3_url = next((f['url'] for f in formats if f['ext'] == 'json3'), None)
-    if not json3_url:
-        print("Could not find JSON3 subtitle format")
-        return None
-
-    response = requests.get(json3_url)
-    if response.status_code != 200:
-        print("Failed to fetch transcript JSON3")
-        return None
-
-    data = response.json()
-    transcript = []
-
-    for event in data.get('events', []):
-        if 'segs' in event:
-            start = event.get('tStartMs', 0) / 1000.0
-            duration = event.get('dDurationMs', 0) / 1000.0
-            text = ''.join(seg.get('utf8', '') for seg in event['segs']).strip()
-            if text:
-                transcript.append({
-                    'start': start,
-                    'duration': duration,
-                    'text': text
-                })
-
-    return transcript
-
-# Queries OpenRouter with either a summary or user question about the transcript
-def query_openrouter(transcript, user_query):
-    logging.debug(f"Querying OpenRouter with user query: '{user_query}'")
-    if not user_query.strip():
-        prompt = f"Summarize the following YouTube video transcript (leave out any advertisements that are made):\n\n{transcript[:10000]}"
-    else:
-        prompt = f"Given the following transcript, answer this question: '{user_query}'\n\nTranscript:\n{transcript[:10000]}"
-
+# GROQ integration
+def query_groq(prompt: str, model="llama3-70b-8192") -> str:
+    print(f"Querying Groq with key: {groq_api_key} and model: {model}")
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {groq_api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "fractal-knowledge-explorer/1.0"
     }
     body = {
-        "model": "mistralai/mistral-7b-instruct:free",
-        "messages": [
-        {"role": "user", "content": prompt}
-        ],
-        "max_tokens": 666
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 2500
     }
-
-    logging.debug(f"Sending request to OpenRouter with body: {body}")
+    time.sleep(1)  # Delay to reduce risk of rate limiting
     try:
-        response = requests.post("https://openrouter.ai/api/v1/chat/completions", json=body, headers=headers)
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            json=body,
+            headers=headers
+        )
         response.raise_for_status()
-        logging.debug(f"Full response from OpenRouter: {response.json()}")
-        result = response.json()["choices"][0]["message"]["content"]
-        logging.debug(f"Received response from OpenRouter: {result[:100]}...")  # Log first 100 characters
-        return result
+        print(f"✅ GROQ raw response: {response.text}")
+        try:
+            return response.json()["choices"][0]["message"]["content"]
+        except json.JSONDecodeError as json_err:
+            print(f"❌ JSONDecodeError: {json_err}")
+            print(f"⚠️ Raw response text: {response.text}")
+            raise
+    except requests.exceptions.HTTPError as http_err:
+        print(f"❌ GROQ HTTP error occurred: {http_err}")
+        if response.status_code == 429 and model != "llama3-70b-8192":
+            print("🔁 Retrying with fallback model...")
+            return query_groq(prompt, model="llama3-13b-4096")
+        raise
+    except requests.exceptions.RequestException as req_err:
+        print(f"❌ RequestException occurred: {req_err}")
+        raise
     except Exception as e:
-        logging.error(f"Error querying OpenRouter: {str(e)}")
+        print(f"❌ An unexpected error occurred: {e}")
         raise
 
 def is_json_request():
@@ -141,9 +137,14 @@ def index():
         transcript = get_transcript(url, language)
         if transcript:
             try:
-                result = query_openrouter(transcript, user_query)
+                transcript_text = "\n".join([seg["text"] for seg in transcript])
+                if not user_query.strip():
+                    prompt = f"Summarize the following YouTube video transcript (leave out any advertisements that are made):\n\n{transcript_text[:10000]}"
+                else:
+                    prompt = f"Given the following transcript, answer this question: '{user_query}'\n\nTranscript:\n{transcript_text[:10000]}"
+                result = query_groq(prompt)
             except Exception as e:
-                error = f"Error querying OpenRouter: {str(e)}"
+                error = f"Error querying Groq: {str(e)}"
                 logging.error(error)
         else:
             error = "Transcript could not be retrieved."
