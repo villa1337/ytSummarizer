@@ -41,7 +41,8 @@ def get_transcript(video_url, language='en'):
             info = ydl.extract_info(video_url, download=False)
         except Exception as e:
             print(f"yt-dlp extraction error: {e}")
-            return None
+            # Fallback to Whisper
+            return transcribe_with_whisper(video_url)
         subtitles = info.get('subtitles') or info.get('automatic_captions', {})
         available_langs = list(subtitles.keys())
         if language not in subtitles:
@@ -52,16 +53,24 @@ def get_transcript(video_url, language='en'):
                 language = fallback_lang
             else:
                 print("❌ No subtitles available at all.")
-                return None
+                # Fallback to Whisper
+                return transcribe_with_whisper(video_url)
         formats = subtitles[language]
         json3_url = next((f['url'] for f in formats if f['ext'] == 'json3'), None)
         if not json3_url:
             print("Could not find JSON3 subtitle format")
-            return None
+            # Fallback to Whisper
+            return transcribe_with_whisper(video_url)
         response = requests.get(json3_url)
+        # Check for redirect to consent or login page
+        if "consent.youtube.com" in response.url or "signin" in response.url:
+            print("❌ YouTube is requesting login or CAPTCHA.")
+            # Fallback to Whisper
+            return transcribe_with_whisper(video_url)
         if response.status_code != 200:
             print("Failed to fetch transcript JSON3")
-            return None
+            # Fallback to Whisper
+            return transcribe_with_whisper(video_url)
         data = response.json()
         transcript = []
         for event in data.get('events', []):
@@ -76,6 +85,61 @@ def get_transcript(video_url, language='en'):
                         'text': text
                     })
         return transcript
+
+# Helper: fallback to Whisper transcription
+def transcribe_with_whisper(video_url):
+    """
+    Downloads audio using yt-dlp, transcribes with whisper, and returns transcript segments.
+    """
+    import tempfile
+    import shutil
+    import whisper
+    logging.info("Falling back to Whisper transcription...")
+    # Make temp dir for audio
+    temp_dir = tempfile.mkdtemp()
+    audio_path = os.path.join(temp_dir, "audio.mp3")
+    try:
+        # Download audio using yt-dlp
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': audio_path,
+            'quiet': True,
+            'no_warnings': True,
+            'cookiefile': os.path.join(os.path.dirname(__file__), 'cookies.txt'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_url])
+        # Transcribe with whisper
+        model = whisper.load_model("base")
+        result = model.transcribe(audio_path)
+        segments = []
+        for seg in result.get("segments", []):
+            segments.append({
+                "start": seg["start"],
+                "duration": seg["end"] - seg["start"],
+                "text": seg["text"].strip()
+            })
+        if not segments and "text" in result:
+            # fallback: whole text as one segment
+            segments.append({
+                "start": 0.0,
+                "duration": 0.0,
+                "text": result["text"].strip()
+            })
+        return segments
+    except Exception as e:
+        logging.error(f"Whisper transcription failed: {e}")
+        return None
+    finally:
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception:
+            pass
 
 # GROQ integration
 def query_groq(prompt: str, model="llama3-70b-8192") -> str:
