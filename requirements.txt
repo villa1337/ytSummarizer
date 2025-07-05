@@ -3,3 +3,4 @@ python-dotenv==1.0.1
 requests==2.31.0
 yt-dlp
 openai-whisper
+python-telegram-bot==13.15
