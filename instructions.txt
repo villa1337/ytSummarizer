@@ -1,0 +1,23 @@
+# Instructions for Copilot
+
+- This project includes a YouTube summarizer (`app.py`) and a Telegram listener (`telegram_listener.py`).
+- When a YouTube URL is received via Telegram, it should be appended to `queue.json` (use add_to_queue).
+- Create a `worker.py` script that:
+  - Continuously checks `queue.json` for pending URLs.
+  - For each one, processes the video using `get_transcript()` and `query_groq()`.
+  - Sends the final summary back to Telegram using the same bot.
+  - Saves the summary in `/reports/{video_id}.json`.
+
+- Add a `/reports` route in `app.py` that:
+  - Lists all summaries in the `reports/` folder
+  - Displays the title, thumbnail (if possible) and content of each
+
+- Each report should be saved with structure:
+  {
+    "url": "https://youtube.com/...",
+    "summary": "...",
+    "timestamp": "2025-06-30T22:00:00"
+  }
+
+- Give me an option to delete reports to optimize the storage
+- All pieces (bot, queue, worker, reports) must be integrated into the final app structure.

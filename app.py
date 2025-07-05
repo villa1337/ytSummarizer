@@ -5,8 +5,9 @@ import logging
 import subprocess
 import json
 import time
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash
 from yt_dlp import YoutubeDL
+from telegram_listener import add_to_queue
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -15,6 +16,9 @@ app = Flask(__name__)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY", "")
+
+REPORTS_DIR = os.path.join(os.path.dirname(__file__), 'reports')
+os.makedirs(REPORTS_DIR, exist_ok=True)
 
 # Extracts video ID from a YouTube URL
 def extract_video_id(url):
@@ -222,6 +226,45 @@ def index():
         return {"result": None, "error": "Only POST method allowed for JSON requests."}
 
     return render_template("index.html", result=result, error=error)
+
+@app.route("/reports", methods=["GET", "POST"])
+def reports():
+    error = None
+    deleted = None
+    if request.method == "POST":
+        # Delete selected reports
+        to_delete = request.form.getlist("delete")
+        for fname in to_delete:
+            fpath = os.path.join(REPORTS_DIR, fname)
+            if os.path.exists(fpath):
+                os.remove(fpath)
+        deleted = to_delete
+    # List all reports
+    report_files = sorted(glob.glob(os.path.join(REPORTS_DIR, '*.json')))
+    reports = []
+    for f in report_files:
+        try:
+            with open(f) as jf:
+                data = json.load(jf)
+            video_id = os.path.splitext(os.path.basename(f))[0]
+            # Try to get title and thumbnail
+            title = video_id
+            thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+            url = data.get('url', '')
+            summary = data.get('summary', '')
+            timestamp = data.get('timestamp', '')
+            reports.append({
+                'filename': os.path.basename(f),
+                'video_id': video_id,
+                'title': title,
+                'thumbnail': thumbnail,
+                'url': url,
+                'summary': summary,
+                'timestamp': timestamp
+            })
+        except Exception as e:
+            continue
+    return render_template("reports.html", reports=reports, deleted=deleted, error=error)
 
 if __name__ == "__main__":
     logging.info("Starting Flask app...")
