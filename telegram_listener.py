@@ -2,12 +2,15 @@
 import json
 import logging
 import re
+import os
 from pathlib import Path
 from telegram.ext import Updater, MessageHandler, Filters
+from telegram import Bot
 
 # === CONFIG ===
-TELEGRAM_BOT_TOKEN = "7691691528:AAHqM3apFFOxVnoiqslIg1wH31GStFf5HDQ"
-QUEUE_PATH = Path("queue.json")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+QUEUE_PATH = Path(os.getenv("QUEUE_PATH", "queue.json"))
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 # === Setup logging ===
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +32,24 @@ def add_to_queue(url):
     else:
         logger.info("ℹ️ URL already in queue.")
         return False
+
+def send_telegram_summary(url, summary, chat_id=None):
+    """
+    Send a summary message to a Telegram chat.
+    If chat_id is not provided, uses TELEGRAM_CHAT_ID from config.
+    """
+    if chat_id is None:
+        chat_id = TELEGRAM_CHAT_ID
+    if not chat_id:
+        logger.error("TELEGRAM_CHAT_ID is not set. Cannot send summary.")
+        return
+    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+    text = f"Summary for {url}:\n\n{summary}"
+    try:
+        bot.send_message(chat_id=chat_id, text=text)
+        logger.info(f"✅ Sent summary to chat {chat_id}")
+    except Exception as e:
+        logger.error(f"❌ Failed to send summary: {e}")
 
 # === Telegram Handler ===
 def handle_message(update, context):

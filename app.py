@@ -5,28 +5,19 @@ import logging
 import subprocess
 import json
 import time
+import glob
 from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash
 from yt_dlp import YoutubeDL
+from helper import transcript_to_prompt
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
 app = Flask(__name__)
 
-API_KEY = os.getenv("OPENROUTER_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY", "")
-
 REPORTS_DIR = os.path.join(os.path.dirname(__file__), 'reports')
 os.makedirs(REPORTS_DIR, exist_ok=True)
-
-# Extracts video ID from a YouTube URL
-def extract_video_id(url):
-    logging.debug(f"Extracting video ID from URL: {url}")
-    # Updated regex to handle more YouTube URL formats
-    match = re.search(r"(?:v=|\/|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})", url)
-    video_id = match.group(1) if match else None
-    logging.debug(f"Extracted video ID: {video_id}")
-    return video_id
 
 # Attempts to fetch transcript in the selected language, defaults to 'es' if 'en' not found
 def get_transcript(video_url, language='en'):
@@ -144,11 +135,7 @@ def index():
         transcript = get_transcript(url, language)
         if transcript:
             try:
-                transcript_text = "\n".join([seg["text"] for seg in transcript])
-                if not user_query.strip():
-                    prompt = f"Summarize the following YouTube video transcript (leave out any advertisements that are made):\n\n{transcript_text[:10000]}"
-                else:
-                    prompt = f"Given the following transcript, answer this question: '{user_query}'\n\nTranscript:\n{transcript_text[:10000]}"
+                prompt = transcript_to_prompt(transcript, user_query)
                 result = query_groq(prompt)
             except Exception as e:
                 error = f"Error querying Groq: {str(e)}"

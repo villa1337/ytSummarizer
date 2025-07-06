@@ -4,8 +4,9 @@ import json
 from datetime import datetime
 from app import get_transcript, query_groq
 from telegram_listener import send_telegram_summary
+from helper import transcript_to_prompt, extract_video_id
 
-QUEUE_PATH = os.path.join(os.path.dirname(__file__), 'queue.json')
+QUEUE_PATH = os.path.join(os.path.dirname(__file__), os.getenv("QUEUE_PATH", "queue.json"))
 REPORTS_DIR = os.path.join(os.path.dirname(__file__), 'reports')
 
 os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -20,8 +21,16 @@ def save_queue(queue):
 
 def process_url(url):
     transcript = get_transcript(url)
-    summary = query_groq(transcript)
-    video_id = url.split('v=')[-1].split('&')[0]
+    if not transcript:
+        print(f"No transcript found for {url}")
+        return
+    prompt = transcript_to_prompt(transcript)
+    summary = query_groq(prompt)
+    # Use extract_video_id to get a safe filename
+    video_id = extract_video_id(url)
+    if not video_id:
+        print(f"Could not extract video ID from {url}")
+        return
     report = {
         'url': url,
         'summary': summary,
