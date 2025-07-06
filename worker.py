@@ -45,13 +45,16 @@ def worker_loop():
     while True:
         queue = load_queue()
         if queue:
-            url = queue.pop(0)
-            try:
-                process_url(url)
-            except Exception as e:
-                print(f'Error processing {url}: {e}')
-            save_queue(queue)
-        time.sleep(10)
+            new_queue = []
+            for url in queue:
+                try:
+                    process_url(url)
+                except Exception as e:
+                    print(f'Error processing {url}: {e}')
+                    new_queue.append(url)  # Keep failed items in queue
+            save_queue(new_queue)
+        else:
+            time.sleep(10)
 
 if __name__ == '__main__':
     worker_loop()
