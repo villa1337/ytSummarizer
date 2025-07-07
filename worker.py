@@ -64,6 +64,8 @@ def process_url(url):
     try:
         with open(report_path, 'w') as f:
             json.dump(report, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
         logger.info(f"Report written: {report_path}")
     except Exception as e:
         logger.error(f"Failed to write report for {url}: {e}")
