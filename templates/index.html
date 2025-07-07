@@ -89,8 +89,10 @@
 </head>
 <body>
   <h1>YouTube Transcript Q&A</h1>
-  <form method="POST">
-    <button type="submit">Submit</button>
+  <div style="width: 90%; max-width: 500px; margin: 20px auto 0 auto; text-align: right;">
+    <a href="/reports" style="color: #fff; background: #333; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold;">View Reports</a>
+  </div>
+  <form method="POST" id="main-form">
     <label for="url">YouTube Video URL:</label>
     <input id="url" name="url" required>
 
@@ -104,6 +106,7 @@
     </select>
 
     <button type="submit">Submit</button>
+    <button type="button" id="async-btn" style="background:#28a745; margin-top:8px;">Async (Queue for Worker)</button>
   </form>
 
   <div class="spinner" id="spinner"></div>
@@ -124,35 +127,49 @@
 
 <script>
   function setupFormListener() {
-    const form = document.querySelector("form");
+    const form = document.getElementById("main-form");
     const spinner = document.getElementById("spinner");
+    const asyncBtn = document.getElementById("async-btn");
 
     form.addEventListener("submit", function (event) {
-      event.preventDefault(); // Prevent the default form submission
-      spinner.style.display = "block"; // Show the spinner
-
-      // Create a FormData object to send the form data
+      event.preventDefault();
+      spinner.style.display = "block";
       const formData = new FormData(form);
-
-      // Send the form data using fetch
       fetch("/", {
         method: "POST",
         body: formData,
       })
         .then((response) => response.text())
         .then((html) => {
-          spinner.style.display = "none"; // Hide the spinner
-          document.body.innerHTML = html; // Replace the page content with the response
-          setupFormListener(); // Re-attach the event listener
+          spinner.style.display = "none";
+          document.body.innerHTML = html;
+          setupFormListener();
         })
         .catch((error) => {
-          spinner.style.display = "none"; // Hide the spinner
+          spinner.style.display = "none";
+          console.error("Error:", error);
+        });
+    });
+
+    asyncBtn.addEventListener("click", function () {
+      spinner.style.display = "block";
+      const formData = new FormData(form);
+      fetch("/queue", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((html) => {
+          spinner.style.display = "none";
+          document.body.innerHTML = html;
+          setupFormListener();
+        })
+        .catch((error) => {
+          spinner.style.display = "none";
           console.error("Error:", error);
         });
     });
   }
-
-  // Initial setup
   setupFormListener();
 </script>
 </body>

@@ -3,21 +3,28 @@
 <html>
 <head>
   <title>Reports - YouTube Summaries</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
-    body { background: #181818; color: #e0e0e0; font-family: Arial, sans-serif; }
-    h1 { color: #fff; }
-    .report-list { max-width: 900px; margin: 0 auto; }
-    .report { background: #232323; border-radius: 8px; margin: 20px 0; padding: 20px; display: flex; align-items: flex-start; }
-    .thumb { margin-right: 20px; }
-    .thumb img { width: 160px; border-radius: 6px; }
-    .content { flex: 1; }
-    .summary { background: #1e1e1e; padding: 10px; border-radius: 6px; margin-top: 10px; white-space: pre-wrap; }
-    .meta { font-size: 0.9em; color: #aaa; margin-top: 5px; }
-    .delete-btn { background: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+    body { background: #181818; color: #e0e0e0; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    h1 { color: #fff; font-size: 1.5em; margin: 16px 0 8px 0; text-align: center; }
+    .report-list { max-width: 100vw; margin: 0 auto; padding: 0 4px; }
+    .report { background: #232323; border-radius: 8px; margin: 12px 0; padding: 12px; display: flex; flex-direction: row; align-items: flex-start; }
+    .thumb { margin-right: 10px; }
+    .thumb img { width: 90px; max-width: 25vw; border-radius: 6px; }
+    .content { flex: 1; min-width: 0; }
+    .summary { background: #1e1e1e; padding: 8px; border-radius: 6px; margin-top: 8px; white-space: pre-wrap; font-size: 0.98em; }
+    .meta { font-size: 0.85em; color: #aaa; margin-top: 4px; word-break: break-all; }
+    .delete-btn { background: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 1em; }
     .delete-btn:hover { background: #a71d2a; }
-    form { margin-bottom: 30px; }
+    form { margin-bottom: 20px; }
     .deleted { color: #28a745; margin-bottom: 10px; }
+    label { font-size: 0.95em; }
+    @media (max-width: 600px) {
+      .report { flex-direction: column; align-items: stretch; padding: 8px; }
+      .thumb { margin: 0 auto 8px auto; text-align: center; }
+      .thumb img { width: 100%; max-width: 90vw; }
+      .content { min-width: 0; }
+    }
   </style>
 </head>
 <body>
@@ -26,8 +33,11 @@
     {% if deleted %}
       <div class="deleted">Deleted: {{ deleted|join(', ') }}</div>
     {% endif %}
-    <form method="POST">
+    <form method="POST" id="delete-form">
       <button class="delete-btn" type="submit">Delete Selected</button>
+      <label style="display:block; margin-bottom:8px;">
+        <input type="checkbox" id="select-all" style="margin-right:6px;"> Select All
+      </label>
       {% for report in reports %}
         <div class="report">
           <div class="thumb">
@@ -51,6 +61,17 @@
       <button class="delete-btn" type="submit">Delete Selected</button>
     </form>
     <a href="/">&larr; Back to Home</a>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var selectAll = document.getElementById('select-all');
+        var checkboxes = document.querySelectorAll('input[type="checkbox"][name="delete"]');
+        if (selectAll) {
+          selectAll.addEventListener('change', function() {
+            checkboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+          });
+        }
+      });
+    </script>
   </div>
 </body>
 </html>

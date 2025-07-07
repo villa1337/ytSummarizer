@@ -9,6 +9,7 @@ import glob
 from flask import Flask, request, render_template, send_from_directory, redirect, url_for, flash
 from yt_dlp import YoutubeDL
 from helper import transcript_to_prompt
+from telegram_listener import add_to_queue
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -190,6 +191,20 @@ def reports():
         except Exception as e:
             continue
     return render_template("reports.html", reports=reports, deleted=deleted, error=error)
+
+@app.route("/queue", methods=["POST"])
+def queue_url():
+    url = request.form.get("url") or (request.json and request.json.get("url"))
+    if not url:
+        error = "No URL provided."
+        return render_template("index.html", result=None, error=error)
+    added = add_to_queue(url)
+    if added:
+        msg = f"✅ Queued for async processing: {url}"
+        return render_template("index.html", result=msg, error=None)
+    else:
+        error = "URL already in queue."
+        return render_template("index.html", result=None, error=error)
 
 if __name__ == "__main__":
     logging.info("Starting Flask app...")
