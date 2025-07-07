@@ -20,26 +20,37 @@ def save_queue(queue):
         json.dump(queue, f, indent=2)
 
 def process_url(url):
+    print(f"Processing URL: {url}")
     transcript = get_transcript(url)
     if not transcript:
         print(f"No transcript found for {url}")
-        return
+        return False
     prompt = transcript_to_prompt(transcript)
     summary = query_groq(prompt)
-    # Use extract_video_id to get a safe filename
     video_id = extract_video_id(url)
     if not video_id:
         print(f"Could not extract video ID from {url}")
-        return
+        return False
     report = {
         'url': url,
         'summary': summary,
         'timestamp': datetime.now().isoformat(timespec='seconds')
     }
     report_path = os.path.join(REPORTS_DIR, f'{video_id}.json')
-    with open(report_path, 'w') as f:
-        json.dump(report, f, indent=2)
-    send_telegram_summary(url, summary)
+    try:
+        with open(report_path, 'w') as f:
+            json.dump(report, f, indent=2)
+        print(f"Report written: {report_path}")
+    except Exception as e:
+        print(f"Failed to write report for {url}: {e}")
+        return False
+    try:
+        send_telegram_summary(url, summary)
+        print(f"Telegram summary sent for {url}")
+    except Exception as e:
+        print(f"Failed to send Telegram summary for {url}: {e}")
+        return False
+    return True
 
 def worker_loop():
     while True:
@@ -48,7 +59,9 @@ def worker_loop():
             new_queue = []
             for url in queue:
                 try:
-                    process_url(url)
+                    success = process_url(url)
+                    if not success:
+                        new_queue.append(url)  # Keep failed items in queue
                 except Exception as e:
                     print(f'Error processing {url}: {e}')
                     new_queue.append(url)  # Keep failed items in queue
